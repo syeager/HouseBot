@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\HouseBot.Events\HouseBot.Data.csproj" />
+    <ProjectReference Include="..\HouseBot.Data\HouseBot.Data.csproj" />
   </ItemGroup>
 
   <ItemGroup>
