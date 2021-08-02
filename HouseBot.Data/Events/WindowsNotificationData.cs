@@ -1,4 +1,4 @@
-﻿using HouseBot.Events.Core;
+﻿using HouseBot.Data.Core;
 
 namespace HouseBot.Data.Events
 {

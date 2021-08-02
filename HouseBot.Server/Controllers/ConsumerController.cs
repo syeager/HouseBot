@@ -1,22 +1,28 @@
 ﻿using System;
+using System.Net;
 using System.Threading.Tasks;
-using HouseBot.Client.Events;
-using HouseBot.Events.Core;
+using Confluent.Kafka;
+using Confluent.SchemaRegistry;
+using Confluent.SchemaRegistry.Serdes;
+using HouseBot.Data.Core;
 using HouseBot.Server.Authorization;
-using HouseBot.Server.Core;
+using HouseBot.Server.Events;
+using HouseBot.Server.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HouseBot.Server.Controllers
 {
-    public abstract class ConsumerController<T> : Controller where T: IEventData
+    [ApiController]
+    [Route("[controller]")]
+    public abstract class ConsumerController<T> : ControllerBase where T : class, IEventData
     {
-        private readonly EventConsumer<T> eventConsumer;
         private readonly ApiKeyStore apiKeyStore;
+        private readonly GetPartitionIndex getPartitionIndex;
 
-        protected ConsumerController(EventConsumer<T> eventConsumer, ApiKeyStore apiKeyStore)
+        protected ConsumerController(ApiKeyStore apiKeyStore, GetPartitionIndex getPartitionIndex)
         {
-            this.eventConsumer = eventConsumer;
             this.apiKeyStore = apiKeyStore;
+            this.getPartitionIndex = getPartitionIndex;
         }
 
         [HttpPost]
@@ -24,8 +30,42 @@ namespace HouseBot.Server.Controllers
         {
             var user = apiKeyStore.GetUser(request.ApiKey);
             var @event = new Event<T>(Guid.NewGuid(), DateTime.UtcNow, user, request.Data);
-            await eventConsumer.ConsumeAsync(@event);
+            await ProduceEventAsync(request.Target, @event);
             return Ok();
+        }
+
+        private async Task ProduceEventAsync(string target, Event<T> @event)
+        {
+            var schemaRegistryConfig = new SchemaRegistryConfig {Url = "http://127.0.0.1:8081"};
+            var producerConfig = new ProducerConfig
+            {
+                BootstrapServers = "127.0.0.1:9092",
+                EnableDeliveryReports = true,
+                ClientId = Dns.GetHostName()
+            };
+
+            using var schemaRegistry = new CachedSchemaRegistryClient(schemaRegistryConfig);
+            using var producer = new ProducerBuilder<string, T>(producerConfig)
+                .SetKeySerializer(new JsonSerializer<string>(schemaRegistry))
+                .SetValueSerializer(new JsonSerializer<T>(schemaRegistry))
+                .Build();
+
+            var partitionIndex = await getPartitionIndex.ForMachineNameAsync(target);
+
+            var partition = new TopicPartition(
+                @event.TopicName,
+                new Partition(partitionIndex));
+
+            var result = await producer.ProduceAsync(
+                partition,
+                new Message<string, T>
+                {
+                    Key = @event.Id.ToString(),
+                    Value = @event.Data
+                });
+
+            Console.WriteLine(
+                $"\nMsg: Your leave request is queued at offset {result.Offset.Value} in the Topic {result.Topic}:{result.Partition.Value}\n\n");
         }
     }
 }

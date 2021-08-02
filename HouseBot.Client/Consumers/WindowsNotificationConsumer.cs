@@ -1,9 +1,9 @@
 ﻿using System.Threading.Tasks;
+using HouseBot.Client.Events;
+using HouseBot.Data.Core;
 using HouseBot.Data.Events;
-using HouseBot.Events.Core;
-using HouseBot.Server.Core;
 
-namespace HouseBot.Server.Consumers
+namespace HouseBot.Client.Consumers
 {
     internal sealed class WindowsNotificationConsumer : EventConsumer<WindowsNotificationData>
     {

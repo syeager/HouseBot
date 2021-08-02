@@ -1,4 +1,4 @@
-﻿namespace HouseBot.Events.Core
+﻿namespace HouseBot.Data.Core
 {
     public interface IEventData
     {

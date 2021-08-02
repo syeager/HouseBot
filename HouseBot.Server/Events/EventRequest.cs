@@ -1,6 +1,6 @@
-﻿using HouseBot.Events.Core;
+﻿using HouseBot.Data.Core;
 
-namespace HouseBot.Client.Events
+namespace HouseBot.Server.Events
 {
     public sealed class EventRequest<T> where T : IEventData
     {

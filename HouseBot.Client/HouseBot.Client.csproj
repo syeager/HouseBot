@@ -7,6 +7,8 @@
 
   <ItemGroup>
     <PackageReference Include="Confluent.Kafka" Version="1.7.0" />
+    <PackageReference Include="Confluent.SchemaRegistry.Serdes.Avro" Version="1.7.0" />
+    <PackageReference Include="Confluent.SchemaRegistry.Serdes.Json" Version="1.7.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
     <PackageReference Include="Serilog" Version="2.10.0" />
     <PackageReference Include="Streamiz.Kafka.Net" Version="1.1.5" />
@@ -14,9 +16,5 @@
 
   <ItemGroup>
     <ProjectReference Include="..\HouseBot.Data\HouseBot.Data.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Events\" />
   </ItemGroup>
 </Project>
