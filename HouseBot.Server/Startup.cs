@@ -1,5 +1,5 @@
+using HouseBot.Data.Services;
 using HouseBot.Server.Authorization;
-using HouseBot.Server.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;

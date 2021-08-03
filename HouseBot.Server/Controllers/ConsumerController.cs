@@ -5,9 +5,9 @@ using Confluent.Kafka;
 using Confluent.SchemaRegistry;
 using Confluent.SchemaRegistry.Serdes;
 using HouseBot.Data.Core;
+using HouseBot.Data.Services;
 using HouseBot.Server.Authorization;
 using HouseBot.Server.Events;
-using HouseBot.Server.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HouseBot.Server.Controllers
@@ -18,6 +18,7 @@ namespace HouseBot.Server.Controllers
     {
         private readonly ApiKeyStore apiKeyStore;
         private readonly GetPartitionIndex getPartitionIndex;
+        private readonly GetTopicName getTopicName = new();
 
         protected ConsumerController(ApiKeyStore apiKeyStore, GetPartitionIndex getPartitionIndex)
         {
@@ -53,7 +54,7 @@ namespace HouseBot.Server.Controllers
             var partitionIndex = await getPartitionIndex.ForMachineNameAsync(target);
 
             var partition = new TopicPartition(
-                @event.TopicName,
+                getTopicName.ForEventData(@event.Data),
                 new Partition(partitionIndex));
 
             var result = await producer.ProduceAsync(

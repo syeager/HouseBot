@@ -1,8 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk.Worker">
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
+    <!--<OutputType>WinExe</OutputType>-->
     <TargetFramework>net5.0</TargetFramework>
-    <!--<UserSecretsId>dotnet-HouseBot.Client-AC55ABCA-D71D-42E7-8D61-4C5CE86C0A38</UserSecretsId>-->
+    <LanguageVersion>9.0</LanguageVersion>
+    <Platforms>x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,5 +18,17 @@
 
   <ItemGroup>
     <ProjectReference Include="..\HouseBot.Data\HouseBot.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Drawing.Common">
+      <HintPath>Libraries\System.Drawing.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Windows.Forms">
+      <HintPath>Libraries\System.Windows.Forms.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Windows.Forms.Primitives">
+      <HintPath>Libraries\System.Windows.Forms.Primitives.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

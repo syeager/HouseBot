@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using HouseBot.Server.Services;
+using HouseBot.Data.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HouseBot.Server.Controllers

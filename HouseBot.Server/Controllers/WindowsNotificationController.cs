@@ -1,6 +1,6 @@
 ﻿using HouseBot.Data.Events;
+using HouseBot.Data.Services;
 using HouseBot.Server.Authorization;
-using HouseBot.Server.Services;
 
 namespace HouseBot.Server.Controllers
 {
