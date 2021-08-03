@@ -1,0 +1,19 @@
+{
+  "Version": 3,
+
+  "ListAllProjects": true,
+
+  "MultiProjectConfigurations": {
+    "C+S": {
+      "Projects": {
+        "HouseBot.Client": {
+          "ProfileName": "HouseBot.Client"
+        },
+        "HouseBot.Server": {
+          "ProfileName": "IIS Express",
+          "StartProject": true
+        }
+      }
+    }
+  }
+}

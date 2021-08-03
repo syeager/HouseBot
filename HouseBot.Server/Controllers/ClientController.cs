@@ -1,23 +1,33 @@
 ﻿using System.Threading.Tasks;
-using HouseBot.Data.Services;
+using HouseBot.Server.Data;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HouseBot.Server.Controllers
 {
-    public class ClientController : Controller
+    [ApiController]
+    [Route("client")]
+    public class ClientController : ControllerBase
     {
-        private readonly GetPartitionIndex getPartitionIndex;
+        private readonly AppData appData;
 
-        public ClientController(GetPartitionIndex getPartitionIndex)
+        public ClientController(AppData appData)
         {
-            this.getPartitionIndex = getPartitionIndex;
+            this.appData = appData;
         }
 
         [HttpGet]
+        [ProducesResponseType(typeof(int), 200)]
         public async Task<ActionResult<int>> GetPartitionIndex(string machineName)
         {
-            var index = await getPartitionIndex.ForMachineNameAsync(machineName);
-            return Ok(index);
+            machineName = machineName.Sanitize();
+
+            var machine = await appData.ClientMachines.FindAsync(machineName);
+            if(machine == null)
+            {
+                return NotFound(machineName);
+            }
+
+            return Ok(machine.PartitionIndex);
         }
     }
 }

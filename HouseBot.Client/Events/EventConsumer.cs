@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Confluent.Kafka;
 using Confluent.Kafka.SyncOverAsync;
@@ -11,7 +12,6 @@ namespace HouseBot.Client.Events
     public abstract class EventConsumer<T> : IDisposable where T : class, IEventData
     {
         private readonly IConsumer<string, T> consumer;
-        private readonly GetPartitionIndex getPartitionIndex = new();
         private readonly GetTopicName getTopicName = new();
         private readonly TimeSpan timeoutMs;
 
@@ -46,8 +46,27 @@ namespace HouseBot.Client.Events
             {
                 var topicName = getTopicName.ForType<T>();
                 consumer.Subscribe(topicName);
-                var partitionIndex = await getPartitionIndex.ForMachineNameAsync(Environment.MachineName);
+
+                var apiClient = new Api.Client(new HttpClient()) {BaseUrl = "https://housebot-server.conveyor.cloud"};
+
+                int partitionIndex;
+                while(true)
+                {
+                    try
+                    {
+                        partitionIndex = await apiClient.Client_GetPartitionIndexAsync(Environment.MachineName);
+                        break;
+                    }
+                    catch
+                    {
+                        Console.WriteLine("Can't connect. Will try again soon.");
+                    }
+
+                    await Task.Delay(TimeSpan.FromSeconds(1));
+                }
+
                 consumer.Assign(new TopicPartition(topicName, new Partition(partitionIndex)));
+                
                 Console.WriteLine("Consumer loop started...\n");
 
                 while(true)
