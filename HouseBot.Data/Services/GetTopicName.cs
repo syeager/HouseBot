@@ -5,9 +5,8 @@ namespace HouseBot.Data.Services
 {
     public class GetTopicName
     {
-        public string ForEventData(IEventData data) => GetName(data.GetType());
-        public string ForType<T>() where T : IEventData => GetName(typeof(T));
-
-        private static string GetName(Type type) => type.Name.ToLower();
+        public string ForEventData(IEventData data) => ForType(data.GetType());
+        public string ForType<T>() where T : IEventData => ForType(typeof(T));
+        public string ForType(Type type) => type.Name.ToLower();
     }
 }

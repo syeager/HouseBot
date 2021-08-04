@@ -18,8 +18,9 @@ namespace HouseBot.Client.Consumers
 
         protected override Task ConsumeAsync(WindowsNotificationData eventData)
         {
-            string iconPath = getBotIcon.ForEmotion(eventData.BotIcon);
-            postWindowsNotification.Notify("HouseBot", eventData.Message, iconPath);
+            var (message, botIcon) = eventData;
+            var iconPath = getBotIcon.ForEmotion(botIcon);
+            postWindowsNotification.Notify("HouseBot", message, iconPath);
             return Task.CompletedTask;
         }
     }

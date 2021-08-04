@@ -6,24 +6,32 @@ using Confluent.Kafka.SyncOverAsync;
 using Confluent.SchemaRegistry.Serdes;
 using HouseBot.Data.Core;
 using HouseBot.Data.Services;
+using Serilog;
 
 namespace HouseBot.Client.Events
 {
-    public abstract class EventConsumer<T> : IDisposable where T : class, IEventData
+    public interface IEventConsumer : IDisposable
     {
+        Task PollAsync();
+    }
+
+    public abstract class EventConsumer<T> : IEventConsumer where T : class, IEventData
+    {
+        protected readonly ILogger logger;
         private readonly IConsumer<string, T> consumer;
         private readonly GetTopicName getTopicName = new();
         private readonly TimeSpan timeoutMs;
 
         protected EventConsumer()
         {
+            logger = Log.ForContext(GetType());
+
             var consumerConfig = new ConsumerConfig
             {
                 BootstrapServers = "127.0.0.1:9092",
                 GroupId = "clients",
                 EnableAutoCommit = false,
                 EnableAutoOffsetStore = false,
-                // Read messages from start if no commit exists.
                 AutoOffsetReset = AutoOffsetReset.Earliest,
                 MaxPollIntervalMs = 300000,
                 SessionTimeoutMs = 45000,
@@ -32,7 +40,7 @@ namespace HouseBot.Client.Events
             consumer = new ConsumerBuilder<string, T>(consumerConfig)
                 .SetKeyDeserializer(new JsonDeserializer<string>().AsSyncOverAsync())
                 .SetValueDeserializer(new JsonDeserializer<T>().AsSyncOverAsync())
-                .SetErrorHandler((_, e) => Console.WriteLine($"Error: {e.Reason}"))
+                .SetErrorHandler((_, e) => logger.Error("Failed to consume event", e))
                 .Build();
 
             timeoutMs = TimeSpan.FromMilliseconds((double)consumerConfig.MaxPollIntervalMs - 5000);
@@ -59,7 +67,7 @@ namespace HouseBot.Client.Events
                     }
                     catch
                     {
-                        Console.WriteLine("Can't connect. Will try again soon.");
+                        logger.Warning("Can't connect. Will try again soon.");
                     }
 
                     await Task.Delay(TimeSpan.FromSeconds(1));
@@ -67,7 +75,7 @@ namespace HouseBot.Client.Events
 
                 consumer.Assign(new TopicPartition(topicName, new Partition(partitionIndex)));
                 
-                Console.WriteLine("Consumer loop started...\n");
+                logger.Information("Consumer loop started...\n");
 
                 while(true)
                 {
@@ -81,14 +89,20 @@ namespace HouseBot.Client.Events
                             continue;
                         }
 
+                        logger
+                            .ForContext("Event.Key", result.Message.Key)
+                            .ForContext("Event.Timestamp", result.Message.Timestamp.UtcDateTime.ToLocalTime())
+                            .ForContext("Event.Data", eventData, true)
+                            .Information("Event recieved");
+
                         await ConsumeAsync(result.Message.Value);
 
                         consumer.Commit(result);
                         consumer.StoreOffset(result);
                     }
-                    catch(ConsumeException e) when(!e.Error.IsFatal)
+                    catch(ConsumeException exception) when(!exception.Error.IsFatal)
                     {
-                        Console.WriteLine($"Non fatal error: {e}");
+                        logger.Warning(exception, "Non fatal error");
                     }
                 }
             }
